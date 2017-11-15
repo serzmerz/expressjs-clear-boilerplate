@@ -1,0 +1,7 @@
+/node_modules
+config
+npm-debug.log
+# netbeans project files
+nbproject
+.idea
+yarn.lock
