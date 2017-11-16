@@ -8,14 +8,46 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER
             },
-            firstName: {
+            instagramId: {
+                allowNull: false,
                 type: Sequelize.STRING
             },
-            lastName: {
+            nickname: {
+                allowNull: false,
                 type: Sequelize.STRING
             },
-            email: {
+            instagramToken: {
                 type: Sequelize.STRING
+            },
+            picture: {
+                allowNull: false,
+                type: Sequelize.STRING
+            },
+            accessTokenAuth0: {
+                allowNull: false,
+                type: Sequelize.STRING
+            },
+            registerEnded: {
+                allowNull: false,
+                defaultValue: false,
+                type: Sequelize.BOOLEAN
+            },
+            pending: {
+                allowNull: false,
+                defaultValue: false,
+                type: Sequelize.BOOLEAN
+            },
+            categoryId: {
+                type: Sequelize.INTEGER
+            },
+            country: {
+                type: Sequelize.STRING
+            },
+            calculatedRating: {
+                type: Sequelize.INTEGER
+            },
+            calculatedRatingPrev: {
+                type: Sequelize.INTEGER
             },
             createdAt: {
                 allowNull: false,
