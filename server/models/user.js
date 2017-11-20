@@ -15,7 +15,7 @@ module.exports = function(sequelize, DataTypes) {
     }, {
         classMethods: {
             associate: function (models) {
-                User.belongsTo(models.Category, { foreignKey: 'categoryId' })
+                User.belongsTo(models.Category)
             }
         }
     });

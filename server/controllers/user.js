@@ -51,6 +51,14 @@ userRouter
             res.json({ response: error });
         });
     })
+    .get('/authorizeAdmin', function(req, res) {
+        var data = {
+            username: 'admin@admin.com',
+            password: 'admin',
+            scope: 'openid'  // Optional field.
+        };
+        auth0.passwordGrant(data).then(data => res.json(data)).catch(error => res.json(error))
+    })
     .put('/:id', function(req, res) {
         const body = req.body;
 
