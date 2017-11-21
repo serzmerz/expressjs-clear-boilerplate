@@ -14,8 +14,9 @@ module.exports = {
             },
             pending: {
                 allowNull: false,
-                defaultValue: false,
-                type: Sequelize.BOOLEAN
+                defaultValue: 'base',
+                type: Sequelize.ENUM,
+                values: [ 'accepted', 'declined', 'proposed', 'base' ]
             },
             createdAt: {
                 allowNull: false,

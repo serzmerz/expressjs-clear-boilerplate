@@ -6,7 +6,7 @@ module.exports = function(sequelize, DataTypes) {
         instagramToken: DataTypes.STRING,
         accessTokenAuth0: DataTypes.STRING,
         picture: DataTypes.STRING,
-        pending: DataTypes.BOOLEAN,
+        pending: { type: DataTypes.ENUM, values: [ 'accepted', 'declined', 'proposed', 'base' ] },
         registerEnded: DataTypes.BOOLEAN,
         categoryId: DataTypes.INTEGER,
         country: DataTypes.STRING,
