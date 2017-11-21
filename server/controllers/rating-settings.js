@@ -2,7 +2,7 @@ const express = require('express');
 const expressJwt = require('express-jwt');
 const CONSTANTS = require('../constants');
 const db = require('../models');
-const RatingSettingsModel = db.RatingSettings;
+const RatingSettingsModel = db.RatingSetting;
 const SECRET = CONSTANTS.SECRET;
 const authenticate = expressJwt({ secret: SECRET });
 
@@ -13,18 +13,22 @@ ratingSettingsRouter
         RatingSettingsModel.findAll()
             .then(data => {
                 res.json({ success: true, data });
+            })
+            .catch(error => {
+                res.json({ success: false, error });
             });
     })
     .put('/', authenticate, function(req, res) {
         const body = req.body;
 
-        RatingSettingsModel.update(body.settings)
-            .then(data => {
-                res.json({ success: Boolean(data) });
-            })
-            .catch(error => {
-                res.json({ success: false, error });
-            });
+        body.settings.forEach(setting => {
+            RatingSettingsModel.update({ value: setting.value }, { where: { id: setting.id } })
+                .catch(() => {
+                    res.json({ success: false });
+                });
+        });
+
+        res.json({ success: true });
     });
 
 module.exports = ratingSettingsRouter;
