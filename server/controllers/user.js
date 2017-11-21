@@ -1,35 +1,172 @@
 const express = require('express');
 const db = require('../models');
-const UserModel = db.User;
+const expressJwt = require('express-jwt');
+const CONSTANTS = require('../constants');
+const SECRET = CONSTANTS.SECRET;
+const authenticate = expressJwt({ secret: SECRET });
+const AuthenticationClient = require('auth0'). AuthenticationClient;
+const ManagementClient = require('auth0').ManagementClient;
+const UserModel = db.Users;
+
+UserModel.belongsTo(db.Categories, { foreignKey: 'categoryId', as: 'category' });
 
 const userRouter = new express.Router();
 
-const AuthenticationClient = require('auth0'). AuthenticationClient;
 const auth0 = new AuthenticationClient({
-    domain: 'hype-board.auth0.com',
-    clientId: '6v6nL5yqrQFxlRotOz98TXKinnDX8Bb8'
+    domain: CONSTANTS.DOMAIN,
+    clientId: CONSTANTS.CLIENT_ID
 });
-
-const ManagementClient = require('auth0').ManagementClient;
 
 const management = new ManagementClient({
-    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IlJrWkNPVEkzT0VZeE5USTRRamMwTVRWRFJqRTRRVE5GUlVFME9EaERNa013T0RWRlFqaEZNdyJ9.eyJpc3MiOiJodHRwczovL2h5cGUtYm9hcmQuYXV0aDAuY29tLyIsInN1YiI6IjVEMzZ0MTlNVVk1TU9NZ0sweFY0alhTZmttRjFGWm10QGNsaWVudHMiLCJhdWQiOiJodHRwczovL2h5cGUtYm9hcmQuYXV0aDAuY29tL2FwaS92Mi8iLCJpYXQiOjE1MTA4MjY2NzQsImV4cCI6MTUxMDkxMzA3NCwic2NvcGUiOiJyZWFkOmNsaWVudF9ncmFudHMgY3JlYXRlOmNsaWVudF9ncmFudHMgZGVsZXRlOmNsaWVudF9ncmFudHMgdXBkYXRlOmNsaWVudF9ncmFudHMgcmVhZDp1c2VycyB1cGRhdGU6dXNlcnMgZGVsZXRlOnVzZXJzIGNyZWF0ZTp1c2VycyByZWFkOnVzZXJzX2FwcF9tZXRhZGF0YSB1cGRhdGU6dXNlcnNfYXBwX21ldGFkYXRhIGRlbGV0ZTp1c2Vyc19hcHBfbWV0YWRhdGEgY3JlYXRlOnVzZXJzX2FwcF9tZXRhZGF0YSBjcmVhdGU6dXNlcl90aWNrZXRzIHJlYWQ6Y2xpZW50cyB1cGRhdGU6Y2xpZW50cyBkZWxldGU6Y2xpZW50cyBjcmVhdGU6Y2xpZW50cyByZWFkOmNsaWVudF9rZXlzIHVwZGF0ZTpjbGllbnRfa2V5cyBkZWxldGU6Y2xpZW50X2tleXMgY3JlYXRlOmNsaWVudF9rZXlzIHJlYWQ6Y29ubmVjdGlvbnMgdXBkYXRlOmNvbm5lY3Rpb25zIGRlbGV0ZTpjb25uZWN0aW9ucyBjcmVhdGU6Y29ubmVjdGlvbnMgcmVhZDpyZXNvdXJjZV9zZXJ2ZXJzIHVwZGF0ZTpyZXNvdXJjZV9zZXJ2ZXJzIGRlbGV0ZTpyZXNvdXJjZV9zZXJ2ZXJzIGNyZWF0ZTpyZXNvdXJjZV9zZXJ2ZXJzIHJlYWQ6ZGV2aWNlX2NyZWRlbnRpYWxzIHVwZGF0ZTpkZXZpY2VfY3JlZGVudGlhbHMgZGVsZXRlOmRldmljZV9jcmVkZW50aWFscyBjcmVhdGU6ZGV2aWNlX2NyZWRlbnRpYWxzIHJlYWQ6cnVsZXMgdXBkYXRlOnJ1bGVzIGRlbGV0ZTpydWxlcyBjcmVhdGU6cnVsZXMgcmVhZDpydWxlc19jb25maWdzIHVwZGF0ZTpydWxlc19jb25maWdzIGRlbGV0ZTpydWxlc19jb25maWdzIHJlYWQ6ZW1haWxfcHJvdmlkZXIgdXBkYXRlOmVtYWlsX3Byb3ZpZGVyIGRlbGV0ZTplbWFpbF9wcm92aWRlciBjcmVhdGU6ZW1haWxfcHJvdmlkZXIgYmxhY2tsaXN0OnRva2VucyByZWFkOnN0YXRzIHJlYWQ6dGVuYW50X3NldHRpbmdzIHVwZGF0ZTp0ZW5hbnRfc2V0dGluZ3MgcmVhZDpsb2dzIHJlYWQ6c2hpZWxkcyBjcmVhdGU6c2hpZWxkcyBkZWxldGU6c2hpZWxkcyB1cGRhdGU6dHJpZ2dlcnMgcmVhZDp0cmlnZ2VycyByZWFkOmdyYW50cyBkZWxldGU6Z3JhbnRzIHJlYWQ6Z3VhcmRpYW5fZmFjdG9ycyB1cGRhdGU6Z3VhcmRpYW5fZmFjdG9ycyByZWFkOmd1YXJkaWFuX2Vucm9sbG1lbnRzIGRlbGV0ZTpndWFyZGlhbl9lbnJvbGxtZW50cyBjcmVhdGU6Z3VhcmRpYW5fZW5yb2xsbWVudF90aWNrZXRzIHJlYWQ6dXNlcl9pZHBfdG9rZW5zIGNyZWF0ZTpwYXNzd29yZHNfY2hlY2tpbmdfam9iIGRlbGV0ZTpwYXNzd29yZHNfY2hlY2tpbmdfam9iIHJlYWQ6Y3VzdG9tX2RvbWFpbnMgZGVsZXRlOmN1c3RvbV9kb21haW5zIGNyZWF0ZTpjdXN0b21fZG9tYWlucyIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.EKiEGKi53SbaDf5GgaakzwUqg8drHqR0VHcBN69iy74jOUavNW94tRNp5DVeNwaT89Hm4K37NX9ZHUjBX0nZHbl0vFUTwJESZv0YDE6nhRxg1NwAijJcWn_Sfyn-VCwtFlrkXj4Wb4IY95csivXWuIKj1EbshAcagrAOOBnptiRgzT_hX6BS52NuWCwdeXbXVO-rD2GChn5VKk_WQUAeeOFpbWo8NhRPjOLG6IIIYD0i1olDNqy2_aY7PcDWOOMDOFBqjYS6ma4Xx4cEhnRM3BsAHSO5k_U_COSBHzV4nFQtqRMuOC74ZfLB3PH3KcKg1ZZQ-a_i-nVp3HXwezUSlg',
-    domain: 'hype-board.auth0.com'
+    token: CONSTANTS.API_TOKEN,
+    domain: CONSTANTS.DOMAIN
 });
+
+const mockData = { position: {
+    number: 1,
+    diff: 5,
+    to: 'down'
+},
+    country: {
+        id: 3,
+        value: 'Country#3'
+    },
+    stats: {
+        common: {
+            followers: '1.3M',
+            likes: '34.4M',
+            posts: 886
+        },
+        rate: [
+            {
+                name: 'Today',
+                number: 1,
+                diff: 3,
+                to: 'up'
+            },
+            {
+                name: 'Weekly',
+                number: 2,
+                diff: 7,
+                to: 'up'
+            },
+            {
+                name: 'Monthly',
+                number: 3,
+                diff: 10,
+                to: 'down'
+            }
+        ],
+        followers: [
+            {
+                name: 'Today',
+                diff: 887,
+                to: 'down'
+            },
+            {
+                name: 'Weekly',
+                diff: '4.6K',
+                to: 'up'
+            },
+            {
+                name: 'Monthly',
+                diff: '13.8K',
+                to: 'up'
+            }
+        ],
+        likes: [
+            {
+                name: 'Today',
+                diff: '1.2K',
+                to: 'up'
+            },
+            {
+                name: 'Weekly',
+                diff: '14.8K',
+                to: 'up'
+            },
+            {
+                name: 'Monthly',
+                diff: '48.1K',
+                to: 'up'
+            }
+        ],
+        posts: [
+            {
+                name: 'Today',
+                diff: 0,
+                to: 0
+            },
+            {
+                name: 'Weekly',
+                diff: '4K',
+                to: 'down'
+            },
+            {
+                name: 'Monthly',
+                diff: '17K',
+                to: 'up'
+            }
+        ]
+    },
+    highlight: {
+        rate: {
+            number: '10',
+            to: 0,
+            date: '10/22/17'
+        },
+        followers: {
+            number: '17K',
+            to: 'up',
+            date: '10/12/17'
+        },
+        likes: {
+            number: '20K',
+            to: 'down',
+            date: '10/22/27'
+        },
+        posts: {
+            number: '50',
+            to: 0,
+            date: '07/22/17'
+        }
+    } };
+
+const getUserById = id => UserModel.findById(id,
+    { include: [ {
+        model: db.Categories,
+        as: 'category',
+        attributes: [ 'id', [ 'name', 'value' ] ]
+    } ], attributes: { exclude: [ 'categoryId' ] } });
 
 userRouter
     .get('/', function(req, res) {
         UserModel.findAll({
-            include: [ db.Category ]
+            include: [ {
+                model: db.Categories,
+                as: 'category'
+            } ]
         }).then(data => {
-                res.json({ response: {
-                    success: true,
-                    data } });
-            }).catch(err => {
-                res.json({ response: {
-                    success: false,
-                    errors: err } });
-            });
+            res.json({ response: {
+                success: true,
+                data } });
+        }).catch(err => {
+            res.json({ response: {
+                success: false,
+                errors: err.toString() } });
+        });
+    })
+    .get('/one/:id', function(req, res) {
+        getUserById(req.params.id).then(data => {
+            res.json({ response: {
+                success: true,
+                data: { ...JSON.parse(JSON.stringify(data)), ...mockData }
+            } });
+        }).catch(err => {
+            res.json({ response: {
+                success: false,
+                errors: err.toString() } });
+        });
     })
     .get('/authorize', function(req, res) {
         const accessToken = req.get('accessToken');
@@ -41,7 +178,7 @@ userRouter
                     nickname: user.nickname,
                     picture: user.picture,
                     accessTokenAuth0: accessToken,
-                    pending: true
+                    pending: 'accepted'
                 },
                 attributes: [ 'id', 'instagramId', 'nickname', 'picture', 'pending', 'registerEnded' ]
             }).then(userProfile => res.json({ response: {
@@ -51,44 +188,54 @@ userRouter
             res.json({ response: error });
         });
     })
-    .get('/authorizeAdmin', function(req, res) {
-        var data = {
-            username: 'admin@admin.com',
-            password: 'admin',
-            scope: 'openid'  // Optional field.
-        };
-        auth0.passwordGrant(data).then(data => res.json(data)).catch(error => res.json(error))
-    })
-    .put('/:id', function(req, res) {
+    .post('/updateProfile', function(req, res) {
         const body = req.body;
 
-        UserModel.findById(req.params.id).then(user => {
-            if (user && user.accessTokenAuth0 === req.get('accessToken')) {
-                management.getUser({ id: user.instagramId }).then(userProfile =>
-                user.update({
-                    picture: userProfile.picture,
-                    nickname: userProfile.nickname,
-                    instagramToken: userProfile.identities[0].access_token,
-                    categoryId: body.category.id,
-                    country: body.country,
-                    registerEnded: true
-                },
+        if (! body.country) body.country = {};
+        UserModel.findOne({ where: { accessTokenAuth0: req.get('accessToken') } }).then(user => {
+            if (user) {
+                management.getUser({ id: user.instagramId }).then(userProfile => {
+                    user.update({
+                        picture: userProfile.picture,
+                        nickname: userProfile.nickname,
+                        instagramToken: userProfile.identities[0].access_token,
+                        categoryId: body.category.id,
+                        country: body.country.id,
+                        registerEnded: true
+                    },
                 { returning: true })
-                    .then(data => res.json({ response: {
-                        success: true,
-                        data
-                    } }))
+                    .then(() =>
+                        getUserById(user.id).then(data => res.json({ response: {
+                            success: true,
+                            data: { ...JSON.parse(JSON.stringify(data)), ...mockData }
+                        } })).catch(error => res.json({ response: {
+                            success: false,
+                            error: error.toString()
+                        } })))
                     .catch(error => res.json({ response: {
                         success: false,
-                        error
+                        error: error.toString()
                     } })
-            ).catch(error => res.json({ response: {
-                success: false,
-                error
-            } }))
-        .catch(error => res.json(error)));
+            );
+                }).catch(error => res.json({ response: {
+                    success: false,
+                    error: error.toString()
+                } }))
+        .catch(error => res.json(error));
             } else res.json({ success: false, error: 'User Not found' });
         });
+    })
+    .post('/suggestNewEntry', function(req, res) {
+        const body = req.body;
+
+        UserModel.create({ nickname: body.accountId, categoryId: body.categoryId, pending: 'proposed' })
+            .then(() => res.json({ response: { success: true } }));
+    })
+    .put('/suggestNewEntry/:id', authenticate, function(req, res) {
+        const body = req.body;
+
+        UserModel.update(body, { where: { id: req.params.id } })
+            .then(() => res.json({ response: { success: true } }));
     });
 
 module.exports = userRouter;

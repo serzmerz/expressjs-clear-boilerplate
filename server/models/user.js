@@ -1,6 +1,7 @@
 'use strict';
+
 module.exports = function(sequelize, DataTypes) {
-    const User = sequelize.define('User', {
+    const Users = sequelize.define('Users', {
         instagramId: DataTypes.STRING,
         nickname: DataTypes.STRING,
         instagramToken: DataTypes.STRING,
@@ -13,12 +14,13 @@ module.exports = function(sequelize, DataTypes) {
         calculatedRating: DataTypes.INTEGER,
         calculatedRatingPrev: DataTypes.INTEGER
     }, {
+        tableName: 'Users',
         classMethods: {
-            associate: function (models) {
-                User.belongsTo(models.Category)
+            associate(models) {
+                Users.belongsTo(models.Categories, { foreignKey: 'categoryId' });
             }
         }
     });
 
-    return User;
+    return Users;
 };

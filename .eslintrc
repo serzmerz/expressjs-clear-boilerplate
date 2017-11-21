@@ -12,12 +12,13 @@
         "BUNDLE_LANG": true,
         "INITIAL_STATE": true
     },
-
     "parserOptions": {
-        "ecmaVersion": 6,
+        "ecmaVersion": 8,
         "sourceType": "module",
         "ecmaFeatures": {
-            "jsx": true
+            "jsx": true,
+            "spread": true,
+            "experimentalObjectRestSpread": true
         }
     },
 
@@ -227,7 +228,6 @@
         "no-trailing-spaces": 1,
         "no-undef-init": 1,
         "no-undefined": 0,
-        "no-underscore-dangle": 0,
         "no-unneeded-ternary": [ 1, { "defaultAssignment": false } ],
         "no-extra-parens": [ 1, "functions" ],
         "object-curly-spacing": [ 1, "always" ],

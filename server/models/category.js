@@ -1,14 +1,15 @@
 'use strict';
 module.exports = function(sequelize, DataTypes) {
-    const Category = sequelize.define('Category', {
+    const Categories = sequelize.define('Categories', {
         name: DataTypes.STRING,
         pending: DataTypes.BOOLEAN
     }, {
+        tableName: 'Categories',
         classMethods: {
-            associate: function (models) {
-                Category.hasMany(models.User)
+            associate(models) {
             }
         }
     });
-    return Category;
+
+    return Categories;
 };
