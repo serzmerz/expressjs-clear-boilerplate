@@ -1,15 +1,15 @@
 const express = require('express');
 const db = require('../models');
-const CategoryModel = db.Category;
+const CategoryModel = db.Categories;
 
 const categoryRouter = new express.Router();
 
 categoryRouter
     .get('/', function(req, res) {
-        CategoryModel.findAll().then(data => {
+        CategoryModel.findAll({ attributes: [ 'id', [ 'name', 'value' ] ] }).then(data => {
             res.json({ response: {
                 success: true,
-                data: data } });
+                data } });
         }).catch(err => {
             res.json({ response: {
                 success: false,

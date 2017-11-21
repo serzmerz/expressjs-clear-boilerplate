@@ -9,7 +9,6 @@ module.exports = {
                 type: Sequelize.INTEGER
             },
             instagramId: {
-                allowNull: false,
                 type: Sequelize.STRING
             },
             nickname: {
@@ -20,11 +19,9 @@ module.exports = {
                 type: Sequelize.STRING
             },
             picture: {
-                allowNull: false,
                 type: Sequelize.STRING
             },
             accessTokenAuth0: {
-                allowNull: false,
                 type: Sequelize.STRING
             },
             registerEnded: {
@@ -34,11 +31,21 @@ module.exports = {
             },
             pending: {
                 allowNull: false,
+                defaultValue: 'base',
+                type: Sequelize.ENUM,
+                values: [ 'accepted', 'declined', 'proposed', 'base' ]
+            },
+            banned: {
+                allowNull: false,
                 defaultValue: false,
                 type: Sequelize.BOOLEAN
             },
             categoryId: {
-                type: Sequelize.INTEGER
+                type: Sequelize.INTEGER,
+                references: {
+                    model: 'Categories',
+                    key: 'id'
+                }
             },
             country: {
                 type: Sequelize.STRING
