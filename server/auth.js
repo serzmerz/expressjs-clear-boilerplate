@@ -16,12 +16,12 @@ passport.use(new Strategy(
         User.findOne({ where: { login: username } }).then(user => {
             if (! user) {
                 return done(null, false, {
-                    message: 'Login does not exist'
+                    username: 'Username does not exist'
                 });
             }
             if (! isValidPassword(user, password)) {
                 return done(null, false, {
-                    message: 'Incorrect password.'
+                    password: 'Incorrect password.'
                 });
             }
             return done(null, user);

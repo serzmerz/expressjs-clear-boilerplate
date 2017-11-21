@@ -5,31 +5,31 @@ module.exports = {
         return queryInterface.bulkInsert('Categories', [
             {
                 name: 'Category#1',
-                pending: true,
+                pending: 'base',
                 createdAt: new Date(),
                 updatedAt: new Date()
             },
             {
                 name: 'Category#2',
-                pending: true,
+                pending: 'base',
                 createdAt: new Date(),
                 updatedAt: new Date()
             },
             {
                 name: 'Category#3',
-                pending: true,
+                pending: 'base',
                 createdAt: new Date(),
                 updatedAt: new Date()
             },
             {
                 name: 'Category#4',
-                pending: true,
+                pending: 'accepted',
                 createdAt: new Date(),
                 updatedAt: new Date()
             },
             {
                 name: 'Category#5',
-                pending: true,
+                pending: 'proposed',
                 createdAt: new Date(),
                 updatedAt: new Date()
             }

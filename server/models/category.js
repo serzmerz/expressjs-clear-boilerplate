@@ -2,7 +2,7 @@
 module.exports = function(sequelize, DataTypes) {
     const Categories = sequelize.define('Categories', {
         name: DataTypes.STRING,
-        pending: DataTypes.BOOLEAN
+        pending: { type: DataTypes.ENUM, values: [ 'accepted', 'declined', 'proposed', 'base' ] }
     }, {
         tableName: 'Categories',
         classMethods: {
