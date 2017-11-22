@@ -9,6 +9,7 @@ module.exports = function(sequelize, DataTypes) {
         picture: DataTypes.STRING,
         pending: { type: DataTypes.ENUM, values: [ 'accepted', 'declined', 'proposed', 'base' ] },
         registerEnded: DataTypes.BOOLEAN,
+        banned: DataTypes.BOOLEAN,
         categoryId: DataTypes.INTEGER,
         country: DataTypes.STRING,
         calculatedRating: DataTypes.INTEGER,

@@ -162,6 +162,20 @@ userRouter
                 errors: err.toString() } });
         });
     })
+    .get('/all', function(req, res) {
+        UserModel.findAll({
+            where: { registerEnded: true },
+            attributes: [ 'id', [ 'instagramId', 'name' ], 'pending', 'banned' ]
+        }).then(data => {
+            res.json({
+                success: true,
+                data });
+        }).catch(err => {
+            res.json({
+                success: false,
+                errors: err.toString() });
+        });
+    })
     .get('/one/:id', function(req, res) {
         getUserById(req.params.id).then(data => {
             res.json({ response: {
@@ -242,6 +256,19 @@ userRouter
 
         UserModel.update(body, { where: { id: req.params.id } })
             .then(() => res.json({ response: { success: true } }));
+    })
+    .delete('/:id', authenticate, function(req, res) {
+        UserModel.destroy({ where: { id: req.params.id } }).then(data => {
+            res.json({
+                success: Boolean(data),
+                data
+            });
+        }).catch(err => {
+            res.json({
+                success: false,
+                error: err
+            });
+        });
     });
 
 module.exports = userRouter;
