@@ -18,8 +18,14 @@ const auth0 = new AuthenticationClient({
 });
 
 const management = new ManagementClient({
-    token: CONSTANTS.API_TOKEN,
-    domain: CONSTANTS.DOMAIN
+    domain: CONSTANTS.DOMAIN,
+    clientId: CONSTANTS.API_CLIENT_ID,
+    clientSecret: CONSTANTS.API_CLIENT_SECRET,
+    audience: CONSTANTS.API_CLIENT_AUDIENCE,
+    tokenProvider: {
+        enableCache: true,
+        cacheTTLInSeconds: 10
+    }
 });
 
 const mockData = { position: {
@@ -219,7 +225,7 @@ userRouter
             );
                 }).catch(error => res.json({ response: {
                     success: false,
-                    error: error.toString()
+                    error: error
                 } }))
         .catch(error => res.json(error));
             } else res.json({ success: false, error: 'User Not found' });
