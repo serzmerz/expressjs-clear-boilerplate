@@ -65,7 +65,7 @@ ReportsRouter
                 res.json({ success: Boolean(data) });
             })
             .catch(error => {
-                res.json({ success:false, error });
+                res.json({ success: false, error });
             });
     });
 
