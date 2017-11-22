@@ -1,0 +1,13 @@
+#!/bin/bash
+cd /home/ec2-user/
+yum install git
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
+. ~/.nvm/nvm.sh
+nvm install 8.7.0
+node -e "console.log('Running Node.js ' + process.version)"
+cd /home/ec2-user/node-website
+npm install sequelize-cli -g
+npm install forever -g
+npm install
+NODE_ENV=production DATABASE_URL=postgres://root:Britoil9381rustier@hiperboard.cm9liwnuwn95.ap-southeast-1.rds.amazonaws.com:5432/hiperboard sequelize db:migrate
+
