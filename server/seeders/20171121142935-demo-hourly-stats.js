@@ -26,7 +26,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 3,
+                userId: 7,
                 totalFollowers: 532123250,
                 totalLikes: 304323230,
                 totalPosts: 543235230,
@@ -37,7 +37,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 4,
+                userId: 6,
                 totalFollowers: 55760,
                 totalLikes: 30430,
                 totalPosts: 5430,
@@ -48,7 +48,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 4,
+                userId: 6,
                 totalFollowers: 55450,
                 totalLikes: 34300,
                 totalPosts: 52140,

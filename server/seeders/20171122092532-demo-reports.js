@@ -10,13 +10,13 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 3,
+                userId: 7,
                 reason: 'Inappropriate',
                 createdAt: new Date(),
                 updatedAt: new Date()
             },
             {
-                userId: 4,
+                userId: 6,
                 reason: 'Spam',
                 createdAt: new Date(),
                 updatedAt: new Date()

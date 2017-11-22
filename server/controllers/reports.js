@@ -4,9 +4,17 @@ const ReportsModel = db.Reports;
 
 const ReportsRouter = new express.Router();
 
+ReportsModel.belongsTo(db.Users, { foreignKey: 'userId', as: 'user' });
+
 ReportsRouter
     .get('/', function(req, res) {
-        ReportsModel.findAll().then(data => {
+        ReportsModel.findAll({
+            include: [ {
+                model: db.Users,
+                as: 'user',
+                attributes: [ [ 'nickname', 'name' ] ]
+            } ]
+        }).then(data => {
             res.json({
                 success: true,
                 data });
@@ -49,6 +57,15 @@ ReportsRouter
                     success: false,
                     error
                 });
+            });
+    })
+    .delete('/:id', function(req, res) {
+        ReportsModel.destroy({ where: { id: req.params.id } })
+            .then(data => {
+                res.json({ success: Boolean(data) });
+            })
+            .catch(error => {
+                res.json({ success:false, error });
             });
     });
 

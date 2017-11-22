@@ -165,7 +165,7 @@ userRouter
     .get('/all', function(req, res) {
         UserModel.findAll({
             where: { registerEnded: true },
-            attributes: [ 'id', [ 'instagramId', 'name' ], 'pending', 'banned' ]
+            attributes: [ 'id', [ 'nickname', 'name' ], 'pending', 'banned' ]
         }).then(data => {
             res.json({
                 success: true,
