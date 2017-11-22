@@ -20,7 +20,7 @@ module.exports = {
                 values: [ 'Spam', 'Inappropriate' ]
             },
             count: {
-                defaultValue: 0,
+                defaultValue: 1,
                 type: Sequelize.INTEGER
             },
             createdAt: {

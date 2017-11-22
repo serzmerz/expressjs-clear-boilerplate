@@ -30,10 +30,19 @@ ReportsRouter
             }
         })
             .then(newReport => {
-                res.json({
-                    success: true,
-                    newReport
-                });
+                if (! newReport[1]) {
+                    newReport[0].update({ count: newReport[0].count + 1 }).then(() => {
+                        res.json({
+                            success: true,
+                            data: newReport[0]
+                        });
+                    }).catch(() => res.json({ success: false }));
+                } else {
+                    res.json({
+                        success: true,
+                        data: newReport[0]
+                    });
+                }
             })
             .catch(error => {
                 res.json({
