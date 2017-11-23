@@ -9,6 +9,9 @@ const ManagementClient = require('auth0').ManagementClient;
 const UserModel = db.Users;
 
 UserModel.belongsTo(db.Categories, { foreignKey: 'categoryId', as: 'category' });
+UserModel.belongsTo(db.DailyStats, { foreignKey: 'id', targetKey: 'userId' });
+UserModel.belongsTo(db.WeeklyStats, { foreignKey: 'id', targetKey: 'userId' });
+UserModel.belongsTo(db.MonthlyStats, { foreignKey: 'id', targetKey: 'userId' });
 
 const userRouter = new express.Router();
 
@@ -28,11 +31,12 @@ const management = new ManagementClient({
     }
 });
 
-const mockData = { position: {
-    number: 1,
-    diff: 5,
-    to: 'down'
-},
+const mockData = {
+    position: {
+        number: 1,
+        diff: 5,
+        to: 'down'
+    },
     country: {
         id: 3,
         value: 'Country#3'
@@ -161,6 +165,19 @@ userRouter
                 success: false,
                 errors: err.toString() } });
         });
+    })
+    .get('/categoryUsers/:categoryId', function(req, res) {
+        UserModel.findAll({
+            include: [
+                { model: db.Categories, as: 'category' },
+                { model: db.DailyStats },
+                { model: db.WeeklyStats },
+                { model: db.MonthlyStats }
+            ],
+            where: { pending: [ 'base', 'accepted' ], banned: false, registerEnded: true }
+        }).then(users => {
+            res.json(users);
+        })
     })
     .get('/all', function(req, res) {
         UserModel.findAll({
