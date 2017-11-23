@@ -1,5 +1,9 @@
+'use strict';
 const express = require('express');
 const db = require('../models');
+const nodemailer = require('nodemailer');
+
+require('dotenv').config();
 const ReportsModel = db.Reports;
 
 const ReportsRouter = new express.Router();
@@ -65,8 +69,32 @@ ReportsRouter
                 res.json({ success: Boolean(data) });
             })
             .catch(error => {
-                res.json({ success:false, error });
+                res.json({ success: false, error });
             });
+    })
+    .post('/sendFeedback', function(req, res) {
+
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.GOOGLE_EMAIL,
+                pass: process.env.GOOGLE_PASSWORD
+            }
+        });
+
+        const mailOptions = {
+            from: 'ivan1234@gmail.com',
+            to: 'serzmerz@gmail.com',
+            subject: 'Feedback to hypeboard',
+            text: req.body.message
+        };
+
+        transporter.sendMail(mailOptions).then(info => {
+            console.log('Message sent: %s', info.messageId);
+        }).catch(error => console.log(error));
+        res.sendStatus(200);
     });
 
 module.exports = ReportsRouter;

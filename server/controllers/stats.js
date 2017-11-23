@@ -18,31 +18,30 @@ StatsRouter
         });
     })
     .get('/setDailyStats', function(req, res) {
-        let success = true;
 
         HourlyStatsModel.findAll().then(hourlyStat => {
             hourlyStat.forEach(item => {
                 DailyStatsModel.findOrCreate({ where: { userId: item.userId },
                     defaults: {
-                        totalFollowers: item.totalFollowers,
-                        totalLikes: item.totalLikes,
-                        totalPosts: item.totalPosts
+                        totalFollowers: item.lastTotalFollowers,
+                        totalLikes: item.lastTotalLikes,
+                        totalPosts: item.lastTotalPosts
                     }
                 }).then(dailyStat => {
-                    if (! dailyStat[0].isNewRecord) {
-                        dailyStat[0].update({
+                    if (! dailyStat[1]) {
+                        return dailyStat[0].update({
                             totalFollowers: item.totalFollowers,
                             totalLikes: item.totalLikes,
                             totalPosts: item.totalPosts,
-                            lastTotalFollowers: dailyStat.totalFollowers,
-                            lastTotalLikes: dailyStat.totalLikes,
-                            lastTotalPosts: dailyStat.totalPosts
-                        }).catch(() => { success = false; });
+                            lastTotalFollowers: dailyStat[0].totalFollowers,
+                            lastTotalLikes: dailyStat[0].totalLikes,
+                            lastTotalPosts: dailyStat[0].totalPosts
+                        }).catch(() => res.json({ success: false }));
                     }
-                }).catch(() => { success = false; });
+                }).catch(() => res.json({ success: false }));
             });
-        }).catch(() => { success = false; });
-        res.json({ success });
+        }).catch(() => res.json({ success: false }));
+        res.json({ success: true });
     });
 
 module.exports = StatsRouter;

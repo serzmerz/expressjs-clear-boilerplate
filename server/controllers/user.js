@@ -239,7 +239,7 @@ userRouter
             );
                 }).catch(error => res.json({ response: {
                     success: false,
-                    error: error
+                    error
                 } }))
         .catch(error => res.json(error));
             } else res.json({ success: false, error: 'User Not found' });
