@@ -2,7 +2,8 @@
 module.exports = function(sequelize, DataTypes) {
     const RatingSetting = sequelize.define('RatingSetting', {
         name: DataTypes.STRING,
-        value: DataTypes.REAL
+        value: DataTypes.REAL,
+        settingsKey: DataTypes.STRING
     }, {
         classMethods: {
             associate(models) {
