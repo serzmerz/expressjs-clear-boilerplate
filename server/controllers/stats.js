@@ -62,12 +62,17 @@ StatsRouter
     .get('/calculateRating', function(req, res) {
         RatingSettingsModel.findAll()
             .then(ratingCoefficients => {
-                HourlyStatsModel.findAll({ include: [ {
-                    model: DailyStatsModel
-                } ] })
+                return HourlyStatsModel.findAll({ include: [
+                    { model: DailyStatsModel },
+                    { model: db.Users }
+                ] })
                     .then(hourlyStats => {
+                        const usersScores = [];
+
                         hourlyStats.forEach(element => {
                             const item = {
+                                categoryId: element.User.categoryId,
+                                calculatedRatingPrev: element.User.calculatedRating,
                                 userId: element.dataValues.userId,
                                 totalFollowers: element.dataValues.totalFollowers,
                                 totalPosts: element.dataValues.totalPosts,
@@ -83,18 +88,28 @@ StatsRouter
                                     item.rating += item[ratingSetting.dataValues.settingsKey] * ratingSetting.dataValues.value;
                                 }
                             });
-                            UserModel.findById(item.userId)
-                                .then(user => {
-                                    user.update({
-                                        calculatedRating: item.rating,
-                                        calculatedRatingPrev: user.dataValues.calculatedRating
-                                    });
-                                })
-                                .catch(() => {
-                                    res.status(400).json({ success: false });
-                                });
+                            console.log(item);
+                            usersScores.push({ userId: item.userId, score: item.rating });
                         });
-                        res.json({ success: true });
+                        // UserModel.findAll()
+                        //     .then(user => {
+                        //         user.update({
+                        //             calculatedRating: item.rating,
+                        //             calculatedRatingPrev: user.dataValues.calculatedRating
+                        //         });
+                        //     })
+                        //     .catch(() => {
+                        //         res.status(400).json({ success: false });
+                        //     });
+                        usersScores.sort((a, b) => {
+                            if (a.score > b.score) {
+                                return -1;
+                            }
+                            if (a.score < b.score) {
+                                return 1;
+                            }
+                        });
+                        res.json({ success: true, usersScores });
                     })
                     .catch(() => {
                         res.status(400).json({ success: false });
