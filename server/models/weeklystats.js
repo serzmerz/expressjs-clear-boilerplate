@@ -7,7 +7,9 @@ module.exports = function(sequelize, DataTypes) {
         totalPosts: DataTypes.INTEGER,
         lastTotalFollowers: DataTypes.INTEGER,
         lastTotalLikes: DataTypes.INTEGER,
-        lastTotalPosts: DataTypes.INTEGER
+        lastTotalPosts: DataTypes.INTEGER,
+        calculatedRating: DataTypes.DOUBLE,
+        calculatedRatingPrev: DataTypes.DOUBLE
     }, {
         classMethods: {
             associate(models) {
