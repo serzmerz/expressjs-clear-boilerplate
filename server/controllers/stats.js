@@ -8,6 +8,9 @@ const UserModel = db.Users;
 const RatingSettingsModel = db.RatingSetting;
 
 HourlyStatsModel.belongsTo(DailyStatsModel, { foreignKey: 'userId', targetKey: 'userId' });
+HourlyStatsModel.belongsTo(UserModel, { foreignKey: 'userId' });
+WeeklyStatsModel.belongsTo(UserModel, { foreignKey: 'userId' });
+DailyStatsModel.belongsTo(UserModel, { foreignKey: 'userId' });
 
 const StatsRouter = new express.Router();
 
@@ -57,14 +60,13 @@ StatsRouter
         });
     })
     .get('/calculateRating', function(req, res) {
-        UserModel.findAll()
         RatingSettingsModel.findAll()
             .then(ratingCoefficients => {
                 HourlyStatsModel.findAll({ include: [ {
                     model: DailyStatsModel
                 } ] })
-                    .then(data => {
-                        data.forEach(element => {
+                    .then(hourlyStats => {
+                        hourlyStats.forEach(element => {
                             const item = {
                                 userId: element.dataValues.userId,
                                 totalFollowers: element.dataValues.totalFollowers,
@@ -81,33 +83,54 @@ StatsRouter
                                     item.rating += item[ratingSetting.dataValues.settingsKey] * ratingSetting.dataValues.value;
                                 }
                             });
-                            // UserModel.findAll()
+                            UserModel.findById(item.userId)
+                                .then(user => {
+                                    user.update({
+                                        calculatedRating: item.rating,
+                                        calculatedRatingPrev: user.dataValues.calculatedRating
+                                    });
+                                })
+                                .catch(() => {
+                                    res.status(400).json({ success: false });
+                                });
                         });
-                        res.json(data);
+                        res.json({ success: true });
+                    })
+                    .catch(() => {
+                        res.status(400).json({ success: false });
                     });
+            })
+            .catch(() => {
+                res.status(400).json({ success: false });
             });
     })
     .get('/setDailyStats', function(req, res) {
-        HourlyStatsModel.findAll().then(hourlyStat => {
+        HourlyStatsModel.findAll({ include: [ { model: db.Users } ] }).then(hourlyStat => {
             hourlyStat.forEach(item => {
-                DailyStatsModel.findOrCreate({ where: { userId: item.userId },
+
+                return DailyStatsModel.findOrCreate({
+                    where: { userId: item.userId },
                     defaults: {
                         totalFollowers: item.totalFollowers,
                         totalLikes: item.totalLikes,
                         totalPosts: item.totalPosts,
                         lastTotalFollowers: item.totalFollowers,
                         lastTotalLikes: item.totalLikes,
-                        lastTotalPosts: item.totalPosts
+                        lastTotalPosts: item.totalPosts,
+                        calculatedRating: item.User.calculatedRating,
+                        calculatedRatingPrev: item.User.calculatedRatingPrev
                     }
                 }).then(dailyStat => {
                     if (! dailyStat[1]) {
-                        dailyStat[0].update({
+                        return dailyStat[0].update({
                             totalFollowers: item.totalFollowers,
                             totalLikes: item.totalLikes,
                             totalPosts: item.totalPosts,
+                            calculatedRating: item.User.calculatedRating,
                             lastTotalFollowers: dailyStat[0].totalFollowers,
                             lastTotalLikes: dailyStat[0].totalLikes,
-                            lastTotalPosts: dailyStat[0].totalPosts
+                            lastTotalPosts: dailyStat[0].totalPosts,
+                            calculatedRatingPrev: dailyStat[0].calculatedRating
                         }).catch(() => { res.json({ success: false }); });
                     }
                 }).catch(() => { res.json({ success: false }); });
@@ -118,26 +141,33 @@ StatsRouter
     .get('/setWeeklyStats', function(req, res) {
         DailyStatsModel.findAll().then(dailyStat => {
             dailyStat.forEach(currentStat => {
-                WeeklyStatsModel.findOrCreate({ where: { userId: currentStat.userId },
+                return WeeklyStatsModel.findOrCreate({ where: { userId: currentStat.userId },
                     defaults: {
                         totalFollowers: currentStat.totalFollowers,
                         totalLikes: currentStat.totalLikes,
                         totalPosts: currentStat.totalPosts,
                         lastTotalFollowers: currentStat.totalFollowers,
                         lastTotalLikes: currentStat.totalLikes,
-                        lastTotalPosts: currentStat.totalPosts
+                        lastTotalPosts: currentStat.totalPosts,
+                        calculatedRating: currentStat.calculatedRaiting,
+                        calculatedRatingPrev: currentStat.calculatedRaiting
                     }
                 }).then(weeklyStat => {
-                    if (! weeklyStat[1]) {
-                        weeklyStat[0].update({
+                    // if (! weeklyStat[1]) {
+                        console.log('____________________________________');
+                        console.log(currentStat.calculatedRating);
+                        console.log('____________________________________');
+                        return weeklyStat[0].update({
                             totalFollowers: currentStat.totalFollowers,
                             totalLikes: currentStat.totalLikes,
                             totalPosts: currentStat.totalPosts,
+                            calculatedRating: currentStat.calculatedRaiting,
                             lastTotalFollowers: weeklyStat[0].totalFollowers,
                             lastTotalLikes: weeklyStat[0].totalLikes,
-                            lastTotalPosts: weeklyStat[0].totalPosts
+                            lastTotalPosts: weeklyStat[0].totalPosts,
+                            calculatedRatingPrev: weeklyStat[0].calculatedRating
                         }).catch(() => { res.json({ success: false }); });
-                    }
+                    // }
                 }).catch(() => { res.json({ success: false }); });
             });
         }).catch(() => { res.json({ success: false }); });
@@ -146,24 +176,28 @@ StatsRouter
     .get('/setMonthlyStats', function(req, res) {
         WeeklyStatsModel.findAll().then(weeklyStat => {
             weeklyStat.forEach(currentStat => {
-                MonthlyStatsModel.findOrCreate({ where: { userId: currentStat.userId },
+                return MonthlyStatsModel.findOrCreate({ where: { userId: currentStat.userId },
                     defaults: {
                         totalFollowers: currentStat.totalFollowers,
                         totalLikes: currentStat.totalLikes,
                         totalPosts: currentStat.totalPosts,
                         lastTotalFollowers: currentStat.totalFollowers,
                         lastTotalLikes: currentStat.totalLikes,
-                        lastTotalPosts: currentStat.totalPosts
+                        lastTotalPosts: currentStat.totalPosts,
+                        calculatedRating: currentStat.calculatedRaiting,
+                        calculatedRatingPrev: currentStat.calculatedRaiting
                     }
                 }).then(monthlyStat => {
                     if (! monthlyStat[1]) {
-                        monthlyStat[0].update({
+                        return monthlyStat[0].update({
                             totalFollowers: currentStat.totalFollowers,
                             totalLikes: currentStat.totalLikes,
                             totalPosts: currentStat.totalPosts,
+                            calculatedRating: currentStat.calculatedRaiting,
                             lastTotalFollowers: monthlyStat[0].totalFollowers,
                             lastTotalLikes: monthlyStat[0].totalLikes,
-                            lastTotalPosts: monthlyStat[0].totalPosts
+                            lastTotalPosts: monthlyStat[0].totalPosts,
+                            calculatedRatingPrev: monthlyStat[0].calculatedRaiting
                         }).catch(() => { res.json({ success: false }); });
                     }
                 }).catch(() => { res.json({ success: false }); });
