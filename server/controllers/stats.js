@@ -107,7 +107,6 @@ StatsRouter
     .get('/setDailyStats', function(req, res) {
         HourlyStatsModel.findAll({ include: [ { model: db.Users } ] }).then(hourlyStat => {
             hourlyStat.forEach(item => {
-
                 return DailyStatsModel.findOrCreate({
                     where: { userId: item.userId },
                     defaults: {
@@ -153,21 +152,18 @@ StatsRouter
                         calculatedRatingPrev: currentStat.calculatedRaiting
                     }
                 }).then(weeklyStat => {
-                    // if (! weeklyStat[1]) {
-                        console.log('____________________________________');
-                        console.log(currentStat.calculatedRating);
-                        console.log('____________________________________');
+                    if (! weeklyStat[1]) {
                         return weeklyStat[0].update({
                             totalFollowers: currentStat.totalFollowers,
                             totalLikes: currentStat.totalLikes,
                             totalPosts: currentStat.totalPosts,
-                            calculatedRating: currentStat.calculatedRaiting,
+                            calculatedRating: currentStat.calculatedRating,
                             lastTotalFollowers: weeklyStat[0].totalFollowers,
                             lastTotalLikes: weeklyStat[0].totalLikes,
                             lastTotalPosts: weeklyStat[0].totalPosts,
                             calculatedRatingPrev: weeklyStat[0].calculatedRating
                         }).catch(() => { res.json({ success: false }); });
-                    // }
+                    }
                 }).catch(() => { res.json({ success: false }); });
             });
         }).catch(() => { res.json({ success: false }); });
@@ -193,11 +189,11 @@ StatsRouter
                             totalFollowers: currentStat.totalFollowers,
                             totalLikes: currentStat.totalLikes,
                             totalPosts: currentStat.totalPosts,
-                            calculatedRating: currentStat.calculatedRaiting,
+                            calculatedRating: currentStat.calculatedRating,
                             lastTotalFollowers: monthlyStat[0].totalFollowers,
                             lastTotalLikes: monthlyStat[0].totalLikes,
                             lastTotalPosts: monthlyStat[0].totalPosts,
-                            calculatedRatingPrev: monthlyStat[0].calculatedRaiting
+                            calculatedRatingPrev: monthlyStat[0].calculatedRating
                         }).catch(() => { res.json({ success: false }); });
                     }
                 }).catch(() => { res.json({ success: false }); });
