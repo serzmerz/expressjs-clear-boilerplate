@@ -1,0 +1,8 @@
+#!/bin/bash
+cd /home/ec2-user/node-website
+. ~/.nvm/nvm.sh
+export port=80
+export NODE_ENV=production
+export DATABASE_URL=postgres://root:Britoil9381rustier@hiperboard.cm9liwnuwn95.ap-southeast-1.rds.amazonaws.com:5432/hiperboard
+NODE_ENV=production DATABASE_URL=postgres://root:Britoil9381rustier@hiperboard.cm9liwnuwn95.ap-southeast-1.rds.amazonaws.com:5432/hiperboard npm run config:production
+NODE_ENV=production DATABASE_URL=postgres://root:Britoil9381rustier@hiperboard.cm9liwnuwn95.ap-southeast-1.rds.amazonaws.com:5432/hiperboard port=80 forever start server
