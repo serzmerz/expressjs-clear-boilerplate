@@ -8,6 +8,8 @@ module.exports = function(sequelize, DataTypes) {
         lastTotalFollowers: DataTypes.INTEGER,
         lastTotalLikes: DataTypes.INTEGER,
         lastTotalPosts: DataTypes.INTEGER,
+        calculatedRating: DataTypes.INTEGER,
+        calculatedRatingPrev: DataTypes.INTEGER,
         avgLikes: DataTypes.INTEGER,
         avgComments: DataTypes.INTEGER
     }, {

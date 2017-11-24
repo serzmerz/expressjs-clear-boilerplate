@@ -12,6 +12,7 @@ UserModel.belongsTo(db.Categories, { foreignKey: 'categoryId', as: 'category' })
 UserModel.belongsTo(db.DailyStats, { foreignKey: 'id', targetKey: 'userId' });
 UserModel.belongsTo(db.WeeklyStats, { foreignKey: 'id', targetKey: 'userId' });
 UserModel.belongsTo(db.MonthlyStats, { foreignKey: 'id', targetKey: 'userId' });
+UserModel.belongsTo(db.HourlyStats, { foreignKey: 'id', targetKey: 'userId' });
 
 const userRouter = new express.Router();
 
@@ -166,6 +167,48 @@ userRouter
                 errors: err.toString() } });
         });
     })
+    .get('/category/:category/offset/:offset/limit/:limit', function(req, res) {
+        UserModel.findAll({
+            where: { categoryId: req.params.category },
+            attributes: {
+                exclude: [ 'instagramToken', 'accessTokenAuth0', 'calculatedRating', 'calculatedRatingPrev', 'createdAt', 'updatedAt' ]
+            },
+            include: [
+                {
+                    model: db.Categories,
+                    as: 'category',
+                    attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+                },
+                {
+                    model: db.HourlyStats,
+                    attributes: { exclude: [ 'avgLikes', 'avgComments', 'createdAt', 'updatedAt' ] },
+                    required: true
+                },
+                {
+                    model: db.DailyStats,
+                    attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+                },
+                {
+                    model: db.WeeklyStats,
+                    attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+                },
+                {
+                    model: db.MonthlyStats,
+                    attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+                }
+            ],
+            order: [ [ db.HourlyStats, 'calculatedRating', 'ASC' ] ],
+            offset: req.params.offset, limit: req.params.limit
+        }).then(data => {
+            res.json({
+                success: true,
+                data });
+        }).catch(err => {
+            res.json({ response: {
+                success: false,
+                errors: err.toString() } });
+        });
+    })
     .get('/categoryUsers/:categoryId', function(req, res) {
         UserModel.findAll({
             include: [
@@ -177,7 +220,7 @@ userRouter
             where: { pending: [ 'base', 'accepted' ], banned: false, registerEnded: true }
         }).then(users => {
             res.json(users);
-        })
+        });
     })
     .get('/all', function(req, res) {
         UserModel.findAll({

@@ -6,24 +6,83 @@ const WeeklyStatsModel = db.WeeklyStats;
 const MonthlyStatsModel = db.MonthlyStats;
 const UserModel = db.Users;
 const RatingSettingsModel = db.RatingSetting;
+const CategoryModel = db.Categories;
 
 HourlyStatsModel.belongsTo(DailyStatsModel, { foreignKey: 'userId', targetKey: 'userId' });
+HourlyStatsModel.belongsTo(UserModel, { foreignKey: 'userId' });
 HourlyStatsModel.belongsTo(UserModel, { foreignKey: 'userId' });
 WeeklyStatsModel.belongsTo(UserModel, { foreignKey: 'userId' });
 DailyStatsModel.belongsTo(UserModel, { foreignKey: 'userId' });
 
 const StatsRouter = new express.Router();
 
+function updateUsersScore(hourlyStats, ratingCoefficients) {
+    const promises = hourlyStats.map(element => {
+        const item = {
+            userId: element.dataValues.userId,
+            totalFollowers: element.dataValues.totalFollowers,
+            totalPosts: element.dataValues.totalPosts,
+            avgComments: element.dataValues.avgComments,
+            avgLikes: element.dataValues.avgLikes,
+            rating: 0
+        };
+
+        item.changesFollowers = element.DailyStat.totalFollowers - element.DailyStat.lastTotalFollowers;
+        item.changesPosts = element.DailyStat.totalPosts - element.DailyStat.lastTotalPosts;
+        ratingCoefficients.forEach(ratingSetting => {
+            if (ratingSetting.dataValues.settingsKey !== 'dataField') {
+                item.rating += item[ratingSetting.dataValues.settingsKey] * ratingSetting.dataValues.value;
+            }
+        });
+        return UserModel.findById(item.userId)
+            .then(user => {
+                return user.update({
+                    calculatedRating: item.rating,
+                    calculatedRatingPrev: user.dataValues.calculatedRating
+                });
+            });
+    });
+
+    return Promise.all(promises);
+}
+
+function compare(a, b) {
+    if (a.User.calculatedRating < b.User.calculatedRating) {return 1;}
+    if (a.User.calculatedRating > b.User.calculatedRating) {return -1;}
+    return 0;
+}
+
+function updateUsersRanks(categories, hourlyStats) {
+    const promises = categories.map(category => {
+        const stats = hourlyStats.filter(hourlyStat => {
+            return hourlyStat.User.dataValues.categoryId === category.id;
+        });
+
+        if (stats.length) {
+            stats.sort(compare);
+            return stats.forEach((item, index) => {
+                item.calculatedRatingPrev = item.calculatedRating;
+                item.calculatedRating = index + 1;
+                return item.save();
+            });
+        }
+    });
+
+    return Promise.all(promises);
+}
+
 StatsRouter
     .get('/hourlyStats', function(req, res) {
         HourlyStatsModel.findAll().then(data => {
-            res.json({ response: {
+            res.json({
                 success: true,
-                data } });
+                data
+            });
         }).catch(err => {
             res.json({
                 success: false,
-                errors: err });
+                errors: err
+            });
         });
     })
     .get('/dailyStats', function(req, res) {
@@ -62,52 +121,31 @@ StatsRouter
     .get('/calculateRating', function(req, res) {
         RatingSettingsModel.findAll()
             .then(ratingCoefficients => {
-                HourlyStatsModel.findAll({ include: [ {
-                    model: DailyStatsModel
-                } ] })
+                return HourlyStatsModel.findAll({ include: [
+                    { model: DailyStatsModel },
+                    { model: UserModel, attributes: [ 'categoryId', 'calculatedRating', 'calculatedRatingPrev' ], raw: true }
+                ] })
                     .then(hourlyStats => {
-                        hourlyStats.forEach(element => {
-                            const item = {
-                                userId: element.dataValues.userId,
-                                totalFollowers: element.dataValues.totalFollowers,
-                                totalPosts: element.dataValues.totalPosts,
-                                avgComments: element.dataValues.avgComments,
-                                avgLikes: element.dataValues.avgLikes,
-                                rating: 0
-                            };
-
-                            item.changesFollowers = element.DailyStat.totalFollowers - element.DailyStat.lastTotalFollowers;
-                            item.changesPosts = element.DailyStat.totalPosts - element.DailyStat.lastTotalPosts;
-                            ratingCoefficients.forEach(ratingSetting => {
-                                if (ratingSetting.dataValues.settingsKey !== 'dataField') {
-                                    item.rating += item[ratingSetting.dataValues.settingsKey] * ratingSetting.dataValues.value;
-                                }
-                            });
-                            UserModel.findById(item.userId)
-                                .then(user => {
-                                    user.update({
-                                        calculatedRating: item.rating,
-                                        calculatedRatingPrev: user.dataValues.calculatedRating
-                                    });
-                                })
-                                .catch(() => {
-                                    res.status(400).json({ success: false });
+                        return updateUsersScore(hourlyStats, ratingCoefficients).then(() => {
+                            return CategoryModel.findAll({
+                                where: { pending: [ 'base', 'accepted' ] },
+                                attributes: [ 'id' ],
+                                raw: true
+                            }).then(categories => {
+                                return updateUsersRanks(categories, hourlyStats).then(() => {
+                                    res.json({ success: true });
                                 });
+                            });
                         });
-                        res.json({ success: true });
-                    })
-                    .catch(() => {
-                        res.status(400).json({ success: false });
                     });
             })
-            .catch(() => {
-                res.status(400).json({ success: false });
+            .catch(error => {
+                res.status(400).json({ success: false, error });
             });
     })
     .get('/setDailyStats', function(req, res) {
         HourlyStatsModel.findAll({ include: [ { model: db.Users } ] }).then(hourlyStat => {
             hourlyStat.forEach(item => {
-
                 return DailyStatsModel.findOrCreate({
                     where: { userId: item.userId },
                     defaults: {
@@ -117,8 +155,8 @@ StatsRouter
                         lastTotalFollowers: item.totalFollowers,
                         lastTotalLikes: item.totalLikes,
                         lastTotalPosts: item.totalPosts,
-                        calculatedRating: item.User.calculatedRating,
-                        calculatedRatingPrev: item.User.calculatedRatingPrev
+                        calculatedRating: item.calculatedRating,
+                        calculatedRatingPrev: item.calculatedRating
                     }
                 }).then(dailyStat => {
                     if (! dailyStat[1]) {
@@ -126,7 +164,7 @@ StatsRouter
                             totalFollowers: item.totalFollowers,
                             totalLikes: item.totalLikes,
                             totalPosts: item.totalPosts,
-                            calculatedRating: item.User.calculatedRating,
+                            calculatedRating: item.calculatedRating,
                             lastTotalFollowers: dailyStat[0].totalFollowers,
                             lastTotalLikes: dailyStat[0].totalLikes,
                             lastTotalPosts: dailyStat[0].totalPosts,
@@ -149,25 +187,22 @@ StatsRouter
                         lastTotalFollowers: currentStat.totalFollowers,
                         lastTotalLikes: currentStat.totalLikes,
                         lastTotalPosts: currentStat.totalPosts,
-                        calculatedRating: currentStat.calculatedRaiting,
-                        calculatedRatingPrev: currentStat.calculatedRaiting
+                        calculatedRating: currentStat.calculatedRating,
+                        calculatedRatingPrev: currentStat.calculatedRating
                     }
                 }).then(weeklyStat => {
-                    // if (! weeklyStat[1]) {
-                        console.log('____________________________________');
-                        console.log(currentStat.calculatedRating);
-                        console.log('____________________________________');
+                    if (! weeklyStat[1]) {
                         return weeklyStat[0].update({
                             totalFollowers: currentStat.totalFollowers,
                             totalLikes: currentStat.totalLikes,
                             totalPosts: currentStat.totalPosts,
-                            calculatedRating: currentStat.calculatedRaiting,
+                            calculatedRating: currentStat.calculatedRating,
                             lastTotalFollowers: weeklyStat[0].totalFollowers,
                             lastTotalLikes: weeklyStat[0].totalLikes,
                             lastTotalPosts: weeklyStat[0].totalPosts,
                             calculatedRatingPrev: weeklyStat[0].calculatedRating
                         }).catch(() => { res.json({ success: false }); });
-                    // }
+                    }
                 }).catch(() => { res.json({ success: false }); });
             });
         }).catch(() => { res.json({ success: false }); });
@@ -184,8 +219,8 @@ StatsRouter
                         lastTotalFollowers: currentStat.totalFollowers,
                         lastTotalLikes: currentStat.totalLikes,
                         lastTotalPosts: currentStat.totalPosts,
-                        calculatedRating: currentStat.calculatedRaiting,
-                        calculatedRatingPrev: currentStat.calculatedRaiting
+                        calculatedRating: currentStat.calculatedRating,
+                        calculatedRatingPrev: currentStat.calculatedRating
                     }
                 }).then(monthlyStat => {
                     if (! monthlyStat[1]) {
@@ -193,7 +228,7 @@ StatsRouter
                             totalFollowers: currentStat.totalFollowers,
                             totalLikes: currentStat.totalLikes,
                             totalPosts: currentStat.totalPosts,
-                            calculatedRating: currentStat.calculatedRaiting,
+                            calculatedRating: currentStat.calculatedRating,
                             lastTotalFollowers: monthlyStat[0].totalFollowers,
                             lastTotalLikes: monthlyStat[0].totalLikes,
                             lastTotalPosts: monthlyStat[0].totalPosts,
