@@ -4,7 +4,7 @@ module.exports = {
     up(queryInterface, Sequelize) {
         return queryInterface.bulkInsert('HourlyStats', [
             {
-                userId: 1,
+                userId: 41,
                 totalFollowers: 550,
                 totalLikes: 300,
                 totalPosts: 540,
@@ -15,7 +15,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 2,
+                userId: 42,
                 totalFollowers: 4000000,
                 totalLikes: 32322200,
                 totalPosts: 52212240,
@@ -26,7 +26,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 7,
+                userId: 43,
                 totalFollowers: 532123250,
                 totalLikes: 304323230,
                 totalPosts: 543235230,
@@ -37,7 +37,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 6,
+                userId: 44,
                 totalFollowers: 55760,
                 totalLikes: 30430,
                 totalPosts: 5430,
@@ -48,7 +48,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 6,
+                userId: 45,
                 totalFollowers: 55450,
                 totalLikes: 34300,
                 totalPosts: 52140,
@@ -59,7 +59,51 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 5,
+                userId: 46,
+                totalFollowers: 5550,
+                totalLikes: 3040,
+                totalPosts: 5340,
+                lastTotalFollowers: 5090,
+                lastTotalLikes: 4050,
+                lastTotalPosts: 8020,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            },
+            {
+                userId: 47,
+                totalFollowers: 5550,
+                totalLikes: 3040,
+                totalPosts: 5340,
+                lastTotalFollowers: 5090,
+                lastTotalLikes: 4050,
+                lastTotalPosts: 8020,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            },
+            {
+                userId: 48,
+                totalFollowers: 5550,
+                totalLikes: 3040,
+                totalPosts: 5340,
+                lastTotalFollowers: 5090,
+                lastTotalLikes: 4050,
+                lastTotalPosts: 8020,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            },
+            {
+                userId: 49,
+                totalFollowers: 5550,
+                totalLikes: 3040,
+                totalPosts: 5340,
+                lastTotalFollowers: 5090,
+                lastTotalLikes: 4050,
+                lastTotalPosts: 8020,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            },
+            {
+                userId: 50,
                 totalFollowers: 5550,
                 totalLikes: 3040,
                 totalPosts: 5340,

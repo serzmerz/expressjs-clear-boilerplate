@@ -11,10 +11,10 @@ const categoryRouter = new express.Router();
 categoryRouter
     .get('/', function(req, res) {
         CategoryModel.findAll({ where: { pending: [ 'accepted', 'base' ] }, attributes: [ 'id', [ 'name', 'value' ] ] })
-            .then(data => {
-                res.json({ response: {
+            .then(result => {
+                res.json({
                     success: true,
-                    data } });
+                    result });
             }).catch(err => {
                 res.json({
                     success: false,

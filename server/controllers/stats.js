@@ -34,41 +34,44 @@ function updateUsersScore(hourlyStats, ratingCoefficients) {
                 item.rating += item[ratingSetting.dataValues.settingsKey] * ratingSetting.dataValues.value;
             }
         });
-        return UserModel.findById(item.userId)
-            .then(user => {
-                return user.update({
-                    calculatedRating: item.rating,
-                    calculatedRatingPrev: user.dataValues.calculatedRating
-                });
-            });
+        return element.User.update({
+            calculatedRating: item.rating,
+            calculatedRatingPrev: element.User.dataValues.calculatedRating
+        });
     });
 
     return Promise.all(promises);
 }
 
 function compare(a, b) {
-    if (a.User.calculatedRating < b.User.calculatedRating) {return 1;}
-    if (a.User.calculatedRating > b.User.calculatedRating) {return -1;}
+    if (a.User.calculatedRating < b.User.calculatedRating) { return 1; }
+    if (a.User.calculatedRating > b.User.calculatedRating) { return -1; }
     return 0;
 }
 
-function updateUsersRanks(categories, hourlyStats) {
-    const promises = categories.map(category => {
-        const stats = hourlyStats.filter(hourlyStat => {
-            return hourlyStat.User.dataValues.categoryId === category.id;
-        });
+function updateUsersRanks(categories) {
+    return HourlyStatsModel.findAll({ include: [
+        { model: DailyStatsModel },
+        { model: UserModel, attributes: [ 'categoryId', 'calculatedRating', 'calculatedRatingPrev' ], raw: true }
+    ] })
+        .then(hourlyStats => {
+            const promises = categories.map(category => {
+                const stats = hourlyStats.filter(hourlyStat => {
+                    return hourlyStat.User.dataValues.categoryId === category.id;
+                });
 
-        if (stats.length) {
-            stats.sort(compare);
-            return stats.forEach((item, index) => {
-                item.calculatedRatingPrev = item.calculatedRating;
-                item.calculatedRating = index + 1;
-                return item.save();
+                if (stats.length) {
+                    stats.sort(compare);
+                    return stats.forEach((item, index) => {
+                        item.calculatedRatingPrev = item.calculatedRating;
+                        item.calculatedRating = index + 1;
+                        return item.save();
+                    });
+                }
             });
-        }
-    });
 
-    return Promise.all(promises);
+            return Promise.all(promises);
+        });
 }
 
 StatsRouter
@@ -87,9 +90,9 @@ StatsRouter
     })
     .get('/dailyStats', function(req, res) {
         DailyStatsModel.findAll().then(data => {
-            res.json({ response: {
+            res.json({
                 success: true,
-                data } });
+                data });
         }).catch(err => {
             res.json({
                 success: false,
@@ -98,9 +101,9 @@ StatsRouter
     })
     .get('/weeklyStats', function(req, res) {
         WeeklyStatsModel.findAll().then(data => {
-            res.json({ response: {
+            res.json({
                 success: true,
-                data } });
+                data });
         }).catch(err => {
             res.json({
                 success: false,
@@ -109,9 +112,9 @@ StatsRouter
     })
     .get('/monthlyStats', function(req, res) {
         MonthlyStatsModel.findAll().then(data => {
-            res.json({ response: {
+            res.json({
                 success: true,
-                data } });
+                data });
         }).catch(err => {
             res.json({
                 success: false,
@@ -123,7 +126,7 @@ StatsRouter
             .then(ratingCoefficients => {
                 return HourlyStatsModel.findAll({ include: [
                     { model: DailyStatsModel },
-                    { model: UserModel, attributes: [ 'categoryId', 'calculatedRating', 'calculatedRatingPrev' ], raw: true }
+                    { model: UserModel, attributes: [ 'id', 'categoryId', 'calculatedRating', 'calculatedRatingPrev' ], raw: true }
                 ] })
                     .then(hourlyStats => {
                         return updateUsersScore(hourlyStats, ratingCoefficients).then(() => {
@@ -132,7 +135,7 @@ StatsRouter
                                 attributes: [ 'id' ],
                                 raw: true
                             }).then(categories => {
-                                return updateUsersRanks(categories, hourlyStats).then(() => {
+                                return updateUsersRanks(categories).then(() => {
                                     res.json({ success: true });
                                 });
                             });
@@ -140,7 +143,7 @@ StatsRouter
                     });
             })
             .catch(error => {
-                res.status(400).json({ success: false, error });
+                res.status(400).json({ success: false, error: error.toString() });
             });
     })
     .get('/setDailyStats', function(req, res) {
@@ -169,9 +172,9 @@ StatsRouter
                             lastTotalLikes: dailyStat[0].totalLikes,
                             lastTotalPosts: dailyStat[0].totalPosts,
                             calculatedRatingPrev: dailyStat[0].calculatedRating
-                        }).catch(() => { res.json({ success: false }); });
+                        });
                     }
-                }).catch(() => { res.json({ success: false }); });
+                });
             });
         }).catch(() => { res.json({ success: false }); });
         res.json({ success: true });

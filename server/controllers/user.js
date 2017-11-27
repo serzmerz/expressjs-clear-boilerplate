@@ -151,24 +151,8 @@ const getUserById = id => UserModel.findById(id,
     } ], attributes: { exclude: [ 'categoryId' ] } });
 
 userRouter
-    .get('/', function(req, res) {
-        UserModel.findAll({
-            include: [ {
-                model: db.Categories,
-                as: 'category'
-            } ]
-        }).then(data => {
-            res.json({ response: {
-                success: true,
-                data } });
-        }).catch(err => {
-            res.json({ response: {
-                success: false,
-                errors: err.toString() } });
-        });
-    })
     .get('/category/:category/offset/:offset/limit/:limit', function(req, res) {
-        UserModel.findAll({
+        UserModel.findAndCountAll({
             where: { categoryId: req.params.category },
             attributes: {
                 exclude: [ 'instagramToken', 'accessTokenAuth0', 'calculatedRating', 'calculatedRatingPrev', 'createdAt', 'updatedAt' ]
@@ -202,24 +186,13 @@ userRouter
         }).then(data => {
             res.json({
                 success: true,
-                data });
+                result: data
+            });
         }).catch(err => {
-            res.json({ response: {
+            res.json({
                 success: false,
-                errors: err.toString() } });
-        });
-    })
-    .get('/categoryUsers/:categoryId', function(req, res) {
-        UserModel.findAll({
-            include: [
-                { model: db.Categories, as: 'category' },
-                { model: db.DailyStats },
-                { model: db.WeeklyStats },
-                { model: db.MonthlyStats }
-            ],
-            where: { pending: [ 'base', 'accepted' ], banned: false, registerEnded: true }
-        }).then(users => {
-            res.json(users);
+                errors: err.toString()
+            });
         });
     })
     .get('/all', function(req, res) {
@@ -238,14 +211,14 @@ userRouter
     })
     .get('/one/:id', function(req, res) {
         getUserById(req.params.id).then(data => {
-            res.json({ response: {
+            res.json({
                 success: true,
-                data: { ...JSON.parse(JSON.stringify(data)), ...mockData }
-            } });
+                result: { ...JSON.parse(JSON.stringify(data)), ...mockData }
+            });
         }).catch(err => {
-            res.json({ response: {
+            res.json({
                 success: false,
-                errors: err.toString() } });
+                errors: err.toString() });
         });
     })
     .get('/authorize', function(req, res) {
@@ -261,9 +234,9 @@ userRouter
                     pending: 'accepted'
                 },
                 attributes: [ 'id', 'instagramId', 'nickname', 'picture', 'pending', 'registerEnded' ]
-            }).then(userProfile => res.json({ response: {
+            }).then(result => res.json({
                 success: true,
-                data: userProfile } }));
+                result: result[0] }));
         }).catch(error => {
             res.json({ response: error });
         });
@@ -285,13 +258,13 @@ userRouter
                     },
                 { returning: true })
                     .then(() =>
-                        getUserById(user.id).then(data => res.json({ response: {
+                        getUserById(user.id).then(data => res.json({
                             success: true,
-                            data: { ...JSON.parse(JSON.stringify(data)), ...mockData }
-                        } })).catch(error => res.json({ response: {
+                            result: { ...JSON.parse(JSON.stringify(data)), ...mockData }
+                        })).catch(error => res.json({
                             success: false,
                             error: error.toString()
-                        } })))
+                        })))
                     .catch(error => res.json({ response: {
                         success: false,
                         error: error.toString()
@@ -309,13 +282,13 @@ userRouter
         const body = req.body;
 
         UserModel.create({ nickname: body.accountId, categoryId: body.categoryId, pending: 'proposed' })
-            .then(() => res.json({ response: { success: true } }));
+            .then(() => res.json({ success: true }));
     })
     .put('/suggestNewEntry/:id', authenticate, function(req, res) {
         const body = req.body;
 
         UserModel.update(body, { where: { id: req.params.id } })
-            .then(() => res.json({ response: { success: true } }));
+            .then(() => res.json({ success: true }));
     })
     .delete('/:id', authenticate, function(req, res) {
         UserModel.destroy({ where: { id: req.params.id } }).then(data => {
