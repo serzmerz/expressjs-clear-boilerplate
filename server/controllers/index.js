@@ -8,6 +8,9 @@ const reports = require('./reports');
 
 const router = new express.Router();
 
+router.get('/', (req, res) => {
+    res.send('Hello, Test!');
+});
 router.use('/user', user);
 router.use('/category', category);
 router.use('/admin', admin);

@@ -4,15 +4,15 @@
   "description": "Express rest api",
   "main": "index.js",
   "scripts": {
+    "test": "mocha --timeout 10000",
     "lint": "eslint . --debug --ignore-path .gitignore --ignore-pattern server/config.js",
-    "test": "npm-run-all lint",
     "start": "port=3000 node server",
     "nodemon": "port=3001 nodemon server --watch server/ --watch configs/ --watch common/",
     "config:dev": "cd configs/ && ln -sfn development/ current",
     "config:testing": "cd configs/ && ln -sfn testing/ current",
     "config:container": "cd configs/ && ln -sfn container/ current",
     "config:production": "cd configs/ && ln -sfn production/ current",
-    "dev": "NODE_ENV=development npm-run-all config:dev && NODE_ENV=development npm-run-all test --parallel nodemon",
+    "dev": "NODE_ENV=development npm-run-all config:dev && NODE_ENV=development npm-run-all lint --parallel nodemon",
     "testing": "NODE_ENV=production npm-run-all config:testing start",
     "container": "NODE_ENV=production npm-run-all clean build config:container start",
     "production": "NODE_ENV=production npm-run-all clean build config:production start"
@@ -24,7 +24,7 @@
   "engines": {
     "node": ">=6"
   },
-  "author": "Sergey Tanskiy",
+  "author": "Sergey Tanskiy and Ilya Sovenko",
   "license": "ISC",
   "dependencies": {
     "auth0": "^2.8.0",
@@ -55,9 +55,14 @@
     "use-strict": "^1.0.1"
   },
   "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-http": "^3.0.0",
     "eslint": "^3.12.2",
+    "mocha": "^4.0.1",
     "nodemon": "^1.11.0",
-    "npm-run-all": "^3.1.2"
+    "npm-run-all": "^3.1.2",
+    "should": "^13.1.3",
+    "supertest": "^3.0.0"
   },
   "pre-commit": "test"
 }

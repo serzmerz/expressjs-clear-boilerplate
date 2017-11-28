@@ -150,22 +150,6 @@ const getUserById = id => UserModel.findById(id,
     } ], attributes: { exclude: [ 'categoryId' ] } });
 
 userRouter
-    .get('/', function(req, res) {
-        UserModel.findAll({
-            include: [ {
-                model: db.Categories,
-                as: 'category'
-            } ]
-        }).then(data => {
-            res.json({ response: {
-                success: true,
-                data } });
-        }).catch(err => {
-            res.json({ response: {
-                success: false,
-                errors: err.toString() } });
-        });
-    })
     .get('/categoryUsers/:categoryId', function(req, res) {
         UserModel.findAll({
             include: [
@@ -177,7 +161,9 @@ userRouter
             where: { pending: [ 'base', 'accepted' ], banned: false, registerEnded: true }
         }).then(users => {
             res.json(users);
-        })
+        }).catch(() => {
+            res.json({ success: false });
+        });
     })
     .get('/all', function(req, res) {
         UserModel.findAll({
@@ -242,13 +228,20 @@ userRouter
                     },
                 { returning: true })
                     .then(() =>
-                        getUserById(user.id).then(data => res.json({ response: {
-                            success: true,
-                            data: { ...JSON.parse(JSON.stringify(data)), ...mockData }
-                        } })).catch(error => res.json({ response: {
-                            success: false,
-                            error: error.toString()
-                        } })))
+                        db.HourlyStats.destroy({ where: { userId: user.id } })
+                            .then(() => {
+                                getUserById(user.id).then(data => res.json({ response: {
+                                    success: true,
+                                    data: { ...JSON.parse(JSON.stringify(data)), ...mockData }
+                                } })).catch(error => res.json({ response: {
+                                    success: false,
+                                    error: error.toString()
+                                } }));
+                            }).catch(error => res.json({ response: {
+                                success: false,
+                                error: error.toString()
+                            } }))
+                        )
                     .catch(error => res.json({ response: {
                         success: false,
                         error: error.toString()

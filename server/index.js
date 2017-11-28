@@ -6,6 +6,7 @@ const cors = require('cors');
 const config = require('./config');
 
 const port = process.env.port;
+
 const server = express();
 
 server.disable('x-powered-by');
@@ -36,3 +37,5 @@ server.use((error, req, res, next) => {
 server.listen(port, () => {
     console.log('The server is running at port ' + port); // eslint-disable-line no-console
 });
+
+module.exports = server;

@@ -12,9 +12,9 @@ categoryRouter
     .get('/', function(req, res) {
         CategoryModel.findAll({ where: { pending: [ 'accepted', 'base' ] }, attributes: [ 'id', [ 'name', 'value' ] ] })
             .then(data => {
-                res.json({ response: {
+                res.json({
                     success: true,
-                    data } });
+                    data });
             }).catch(err => {
                 res.json({
                     success: false,

@@ -9,7 +9,9 @@ module.exports = function(sequelize, DataTypes) {
         lastTotalLikes: DataTypes.INTEGER,
         lastTotalPosts: DataTypes.INTEGER,
         avgLikes: DataTypes.INTEGER,
-        avgComments: DataTypes.INTEGER
+        avgComments: DataTypes.INTEGER,
+        calculatedRating: DataTypes.INTEGER,
+        calculatedRatingPrev: DataTypes.INTEGER
     }, {
         classMethods: {
             associate(models) {

@@ -67,12 +67,12 @@ StatsRouter
                     { model: db.Users }
                 ] })
                     .then(hourlyStats => {
-                        const usersScores = [];
+                        const usersScores = {};
 
                         hourlyStats.forEach(element => {
                             const item = {
                                 categoryId: element.User.categoryId,
-                                calculatedRatingPrev: element.User.calculatedRating,
+                                calculatedRatingPrev: element.calculatedRating,
                                 userId: element.dataValues.userId,
                                 totalFollowers: element.dataValues.totalFollowers,
                                 totalPosts: element.dataValues.totalPosts,
@@ -81,34 +81,43 @@ StatsRouter
                                 rating: 0
                             };
 
-                            item.changesFollowers = element.DailyStat.totalFollowers - element.DailyStat.lastTotalFollowers;
-                            item.changesPosts = element.DailyStat.totalPosts - element.DailyStat.lastTotalPosts;
+                            item.changesFollowers = element.totalFollowers - element.lastTotalFollowers;
+                            item.changesPosts = element.totalPosts - element.lastTotalPosts;
                             ratingCoefficients.forEach(ratingSetting => {
                                 if (ratingSetting.dataValues.settingsKey !== 'dataField') {
                                     item.rating += item[ratingSetting.dataValues.settingsKey] * ratingSetting.dataValues.value;
                                 }
                             });
-                            console.log(item);
-                            usersScores.push({ userId: item.userId, score: item.rating });
+                            usersScores[item.categoryId] ?
+                                usersScores[item.categoryId].push({
+                                    userId: item.userId,
+                                    score: item.rating,
+                                    calculatedRatingPrev: item.calculatedRatingPrev
+                                }) :
+                                usersScores[item.categoryId] = [ {
+                                    userId: item.userId,
+                                    score: item.rating,
+                                    calculatedRatingPrev: item.calculatedRatingPrev
+                                } ];
                         });
-                        // UserModel.findAll()
-                        //     .then(user => {
-                        //         user.update({
-                        //             calculatedRating: item.rating,
-                        //             calculatedRatingPrev: user.dataValues.calculatedRating
-                        //         });
-                        //     })
-                        //     .catch(() => {
-                        //         res.status(400).json({ success: false });
-                        //     });
-                        usersScores.sort((a, b) => {
-                            if (a.score > b.score) {
-                                return -1;
-                            }
-                            if (a.score < b.score) {
-                                return 1;
-                            }
-                        });
+                        for (const key in usersScores) {
+                            usersScores[key].sort((a, b) => {
+                                if (a.score > b.score) {
+                                    return -1;
+                                }
+                                if (a.score < b.score) {
+                                    return 1;
+                                }
+                            });
+                            usersScores[key].forEach((ratedUser, index) => {
+                                HourlyStatsModel.update({ calculatedRating: index + 1,
+                                    calculatedRatingPrev: ratedUser.calculatedRatingPrev },
+                                    { where: { userId: ratedUser.userId } })
+                                    .catch(() => {
+                                        res.status(400).json({ success: false });
+                                    });
+                            });
+                        }
                         res.json({ success: true, usersScores });
                     })
                     .catch(() => {
@@ -131,8 +140,8 @@ StatsRouter
                         lastTotalFollowers: item.totalFollowers,
                         lastTotalLikes: item.totalLikes,
                         lastTotalPosts: item.totalPosts,
-                        calculatedRating: item.User.calculatedRating,
-                        calculatedRatingPrev: item.User.calculatedRatingPrev
+                        calculatedRating: item.calculatedRating,
+                        calculatedRatingPrev: item.calculatedRating
                     }
                 }).then(dailyStat => {
                     if (! dailyStat[1]) {
@@ -140,7 +149,7 @@ StatsRouter
                             totalFollowers: item.totalFollowers,
                             totalLikes: item.totalLikes,
                             totalPosts: item.totalPosts,
-                            calculatedRating: item.User.calculatedRating,
+                            calculatedRating: item.calculatedRating,
                             lastTotalFollowers: dailyStat[0].totalFollowers,
                             lastTotalLikes: dailyStat[0].totalLikes,
                             lastTotalPosts: dailyStat[0].totalPosts,
