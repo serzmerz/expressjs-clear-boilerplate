@@ -33,93 +33,6 @@ const management = new ManagementClient({
 });
 
 const mockData = {
-    position: {
-        number: 1,
-        diff: 5,
-        to: 'down'
-    },
-    country: {
-        id: 3,
-        value: 'Country#3'
-    },
-    stats: {
-        common: {
-            followers: '1.3M',
-            likes: '34.4M',
-            posts: 886
-        },
-        rate: [
-            {
-                name: 'Today',
-                number: 1,
-                diff: 3,
-                to: 'up'
-            },
-            {
-                name: 'Weekly',
-                number: 2,
-                diff: 7,
-                to: 'up'
-            },
-            {
-                name: 'Monthly',
-                number: 3,
-                diff: 10,
-                to: 'down'
-            }
-        ],
-        followers: [
-            {
-                name: 'Today',
-                diff: 887,
-                to: 'down'
-            },
-            {
-                name: 'Weekly',
-                diff: '4.6K',
-                to: 'up'
-            },
-            {
-                name: 'Monthly',
-                diff: '13.8K',
-                to: 'up'
-            }
-        ],
-        likes: [
-            {
-                name: 'Today',
-                diff: '1.2K',
-                to: 'up'
-            },
-            {
-                name: 'Weekly',
-                diff: '14.8K',
-                to: 'up'
-            },
-            {
-                name: 'Monthly',
-                diff: '48.1K',
-                to: 'up'
-            }
-        ],
-        posts: [
-            {
-                name: 'Today',
-                diff: 0,
-                to: 0
-            },
-            {
-                name: 'Weekly',
-                diff: '4K',
-                to: 'down'
-            },
-            {
-                name: 'Monthly',
-                diff: '17K',
-                to: 'up'
-            }
-        ]
-    },
     highlight: {
         rate: {
             number: '10',
@@ -141,14 +54,35 @@ const mockData = {
             to: 0,
             date: '07/22/17'
         }
-    } };
+    }
+};
 
 const getUserById = id => UserModel.findById(id,
-    { include: [ {
-        model: db.Categories,
-        as: 'category',
-        attributes: [ 'id', [ 'name', 'value' ] ]
-    } ], attributes: { exclude: [ 'categoryId' ] } });
+    { include: [
+        {
+            model: db.Categories,
+            as: 'category',
+            attributes: [ 'id', [ 'name', 'value' ] ]
+        },
+        {
+            model: db.HourlyStats,
+            attributes: { exclude: [ 'avgLikes', 'avgComments', 'createdAt', 'updatedAt' ] }
+        },
+        {
+            model: db.DailyStats,
+            attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+        },
+        {
+            model: db.WeeklyStats,
+            attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+        },
+        {
+            model: db.MonthlyStats,
+            attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+        }
+    ], attributes: { exclude:
+        [ 'categoryId', 'instagramToken', 'accessTokenAuth0', 'createdAt', 'updatedAt', 'calculatedRating', 'calculatedRatingPrev' ]
+    } });
 
 userRouter
     .get('/category/:category/offset/:offset/limit/:limit', function(req, res) {
@@ -210,10 +144,10 @@ userRouter
         });
     })
     .get('/one/:id', function(req, res) {
-        getUserById(req.params.id).then(data => {
+        getUserById(req.params.id).then(result => {
             res.json({
                 success: true,
-                result: { ...JSON.parse(JSON.stringify(data)), ...mockData }
+                result
             });
         }).catch(err => {
             res.json({
