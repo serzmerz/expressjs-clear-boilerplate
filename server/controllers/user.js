@@ -4,7 +4,7 @@ const expressJwt = require('express-jwt');
 const CONSTANTS = require('../constants');
 const SECRET = CONSTANTS.SECRET;
 const authenticate = expressJwt({ secret: SECRET });
-const AuthenticationClient = require('auth0'). AuthenticationClient;
+// const AuthenticationClient = require('auth0').AuthenticationClient;
 const ManagementClient = require('auth0').ManagementClient;
 const UserModel = db.Users;
 
@@ -16,10 +16,10 @@ UserModel.belongsTo(db.HourlyStats, { foreignKey: 'id', targetKey: 'userId' });
 
 const userRouter = new express.Router();
 
-const auth0 = new AuthenticationClient({
+/* const auth0 = new AuthenticationClient({
     domain: CONSTANTS.DOMAIN,
     clientId: CONSTANTS.CLIENT_ID
-});
+}); */
 
 const management = new ManagementClient({
     domain: CONSTANTS.DOMAIN,
@@ -31,31 +31,6 @@ const management = new ManagementClient({
         cacheTTLInSeconds: 10
     }
 });
-
-const mockData = {
-    highlight: {
-        rate: {
-            number: '10',
-            to: 0,
-            date: '10/22/17'
-        },
-        followers: {
-            number: '17K',
-            to: 'up',
-            date: '10/12/17'
-        },
-        likes: {
-            number: '20K',
-            to: 'down',
-            date: '10/22/27'
-        },
-        posts: {
-            number: '50',
-            to: 0,
-            date: '07/22/17'
-        }
-    }
-};
 
 const getUserById = id => UserModel.findById(id,
     { include: [
@@ -69,8 +44,7 @@ const getUserById = id => UserModel.findById(id,
             attributes: { exclude: [ 'avgLikes', 'avgComments', 'createdAt', 'updatedAt' ] }
         },
         {
-            model: db.DailyStats,
-            attributes: { exclude: [ 'createdAt', 'updatedAt' ] }
+            model: db.DailyStats
         },
         {
             model: db.WeeklyStats,
@@ -155,22 +129,27 @@ userRouter
                 errors: err.toString() });
         });
     })
-    .get('/authorize', function(req, res) {
+    .get('/authorize/:userId', function(req, res) {
         const accessToken = req.get('accessToken');
 
-        auth0.getProfile(accessToken).then(user => {
-            UserModel.findOrCreate({ where: { instagramId: user.sub },
+        management.getUser({ id: req.params.userId }).then(user => {
+            UserModel.findOrCreate({ where: { instagramId: req.params.userId },
                 defaults: {
-                    instagramId: user.sub,
+                    instagramId: req.params.userId,
                     nickname: user.nickname,
                     picture: user.picture,
                     accessTokenAuth0: accessToken,
                     pending: 'accepted'
                 },
                 attributes: [ 'id', 'instagramId', 'nickname', 'picture', 'pending', 'registerEnded' ]
-            }).then(result => res.json({
-                success: true,
-                result: result[0] }));
+            }).then(userProfile => {
+                return userProfile[0].update({ accessTokenAuth0: accessToken })
+                    .then(() =>
+                    res.json({
+                        success: true,
+                        result: userProfile[0]
+                    }));
+            });
         }).catch(error => {
             res.json({ response: error });
         });
@@ -189,27 +168,21 @@ userRouter
                         categoryId: body.category.id,
                         country: body.country.id,
                         registerEnded: true
-                    },
-                { returning: true })
+                    })
                     .then(() =>
-                        getUserById(user.id).then(data => res.json({
-                            success: true,
-                            result: { ...JSON.parse(JSON.stringify(data)), ...mockData }
-                        })).catch(error => res.json({
-                            success: false,
-                            error: error.toString()
-                        })))
-                    .catch(error => res.json({ response: {
-                        success: false,
-                        error: error.toString()
-                    } })
-            );
-                }).catch(error => res.json({ response: {
-                    success: false,
-                    error
-                } }))
-        .catch(error => res.json(error));
-            } else res.json({ success: false, error: 'User Not found' });
+                        getUserById(user.id).then(result =>
+                            res.json({
+                                success: true,
+                                result
+                            })
+                        )
+                    );
+                })
+        .catch(error => res.status(500).json({
+            success: false,
+            error: error.toString()
+        }));
+            } else res.status(404).json({ success: false, error: 'User Not found' });
         });
     })
     .post('/suggestNewEntry', function(req, res) {

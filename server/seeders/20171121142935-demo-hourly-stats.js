@@ -4,7 +4,7 @@ module.exports = {
     up(queryInterface, Sequelize) {
         return queryInterface.bulkInsert('HourlyStats', [
             {
-                userId: 41,
+                userId: 1,
                 totalFollowers: 550,
                 totalLikes: 300,
                 totalPosts: 540,
@@ -15,7 +15,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 42,
+                userId: 2,
                 totalFollowers: 4000000,
                 totalLikes: 32322200,
                 totalPosts: 52212240,
@@ -26,7 +26,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 43,
+                userId: 3,
                 totalFollowers: 532123250,
                 totalLikes: 304323230,
                 totalPosts: 543235230,
@@ -37,7 +37,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 44,
+                userId: 4,
                 totalFollowers: 55760,
                 totalLikes: 30430,
                 totalPosts: 5430,
@@ -48,7 +48,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 45,
+                userId: 5,
                 totalFollowers: 55450,
                 totalLikes: 34300,
                 totalPosts: 52140,
@@ -59,7 +59,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 46,
+                userId: 6,
                 totalFollowers: 5550,
                 totalLikes: 3040,
                 totalPosts: 5340,
@@ -70,7 +70,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 47,
+                userId: 7,
                 totalFollowers: 5550,
                 totalLikes: 3040,
                 totalPosts: 5340,
@@ -81,7 +81,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 48,
+                userId: 8,
                 totalFollowers: 5550,
                 totalLikes: 3040,
                 totalPosts: 5340,
@@ -92,7 +92,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 49,
+                userId: 9,
                 totalFollowers: 5550,
                 totalLikes: 3040,
                 totalPosts: 5340,
@@ -103,7 +103,7 @@ module.exports = {
                 updatedAt: new Date()
             },
             {
-                userId: 50,
+                userId: 10,
                 totalFollowers: 5550,
                 totalLikes: 3040,
                 totalPosts: 5340,
